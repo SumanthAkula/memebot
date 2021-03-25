@@ -59,7 +59,8 @@ async def is_admin_or_higher(ctx) -> bool:
 
 
 @client.event
-async def on_command_error(ctx, error: commands.CommandError):
+async def on_command_error(ctx: commands.Context, error: commands.CommandError):
+    print(f"User {ctx.message.author.display_name} tried to run command `{ctx.command.name}`")
     if isinstance(error, commands.MissingRole):
         await ctx.send(f"You need the '{ctx.guild.get_role(error.missing_role).name}' role to run that command!")
     elif isinstance(error, commands.CommandNotFound):
@@ -72,7 +73,7 @@ async def on_command_error(ctx, error: commands.CommandError):
     elif isinstance(error, commands.CheckFailure):
         await ctx.send(f"You do not have the right permissions to run the `{ctx.command.name}` command")
     else:
-        await ctx.send(error)
+        await ctx.send(str(error))
         raise error
 
 
