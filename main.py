@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+import secret
 from util.config_util import CFUtil
 from util.config_options import ConfigOption
 from util.db_util import DBUtil
@@ -231,4 +232,4 @@ async def on_message(message: discord.Message):
     await client.process_commands(message)
 
 
-client.run(Constants.TOKEN)
+client.run(secret.TOKEN)
