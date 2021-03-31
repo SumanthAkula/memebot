@@ -38,6 +38,7 @@ class DBUtil:
                     bully_abdur INTEGER DEFAULT 1,
                     send_ayy_lmao INTEGER DEFAULT 1,
                     send_ping_pong INTEGER DEFAULT 1,
+                    send_noot_noot INTEGER DEFAULT 1,
                     meme_reviewer_role INTEGER DEFAULT -1,
                     admin_role INTEGER DEFAULT -1,
                     meme_review_channel INTEGER DEFAULT -1,
@@ -61,7 +62,7 @@ class DBUtil:
 
         if self.cursor.execute(f"SELECT * FROM {self.config_table_name};").fetchone() is None:
             print("config table is empty, setting default values now")
-            self.cursor.execute(f"INSERT INTO {self.config_table_name} VALUES (62, 1, 1, 1, -1, -1, -1, 1);")
+            self.cursor.execute(f"INSERT INTO {self.config_table_name} VALUES (62, 1, 1, 1, 1, -1, -1, -1, 1);")
         self.db.commit()
 
     def add_rating(self, user_id: int, rating: str):
