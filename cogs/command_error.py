@@ -1,24 +1,5 @@
 from discord.ext import commands
 
-from main import cf_util
-from util.config_options import ConfigOption
-
-
-# command permission checking functions
-async def is_dev(ctx) -> bool:
-    return ctx.author.id == 177812127363497984
-
-
-async def is_admin_or_higher(ctx) -> bool:
-    if await is_dev(ctx):
-        return True
-    admin_role = ctx.guild.get_role(
-        cf_util.get_param(ConfigOption.admin_role.name))
-    for role in ctx.author.roles:
-        if role.position >= admin_role.position:
-            return True
-    return False
-
 
 class CommandErrorChecker(commands.Cog):
     def __init__(self, client):
@@ -41,6 +22,7 @@ class CommandErrorChecker(commands.Cog):
         else:
             await ctx.send(str(error))
             raise error
+        raise error
 
 
 def setup(client):

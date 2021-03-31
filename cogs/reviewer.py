@@ -8,23 +8,24 @@ from util.config_options import ConfigOption
 
 
 class Reviewer(commands.Cog):
-    def __init__(self, client, bot_controller):
+    def __init__(self, client):
         self.client = client
-        self.bot_ctrl = bot_controller
 
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author == self.client.user:
             return
         if cf_util.get_param('meme_review_channel') == message.channel.id:
-            await bot_ctrl.delete_blocked_domains(message)
             if message.guild.get_role(cf_util.get_param('meme_reviewer_role')) in message.author.roles:
                 await bot_ctrl.get_rating(message)
 
     @commands.command()
     @commands.has_role(cf_util.get_param(ConfigOption.meme_reviewer_role.name))
-    async def rating(self, ctx: discord.ext.commands.Context, operation, amount, rating_type, user):
-        print(f"op: {operation}, amount: {amount}, rating_type: {rating_type}, user: {user}")
+    async def rating(self, ctx: discord.ext.commands.Context,
+                     operation: str,
+                     amount: int,
+                     rating_type: str,
+                     user: discord.Member):
         operation = operation.lower()
         rating_type = rating_type.lower()
         if operation is None or not (operation == "add" or operation == "subtract"):
@@ -39,14 +40,18 @@ class Reviewer(commands.Cog):
         await ctx.send(f"successfully updated the {rating_type} stat for {user.display_name}")
 
     @commands.command(aliases=["gs"])
-    async def getstats(self, ctx: discord.ext.commands.Context, user=None):
+    async def getstats(self, ctx: discord.ext.commands.Context, user: discord.Member = None):
         if user is not None:
             await ctx.send(embed=bot_ctrl.get_user_stats(user))
         else:
             await ctx.send(embed=bot_ctrl.get_user_stats(ctx.author))
 
+    @commands.command(aliases=["lb"])
+    async def leaderboard(self, ctx, sort: str = 'r'):
+        await ctx.send(await bot_ctrl.get_leaderboard(ctx, sort))
+
     @commands.command()
-    @commands.check(is_dev)
+    @commands.check(bot_ctrl.is_dev)
     async def preload(self, ctx: discord.ext.commands.Context):
         mr_channel_id = cf_util.get_param(ConfigOption.meme_review_channel.name)
         if ctx.message.channel.id != mr_channel_id:
@@ -69,4 +74,4 @@ class Reviewer(commands.Cog):
 
 
 def setup(client):
-    client.add_cog(Reviewer(client, bot_ctrl))
+    client.add_cog(Reviewer(client))

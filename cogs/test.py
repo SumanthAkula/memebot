@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands
 
 
@@ -6,8 +7,8 @@ class Test(commands.Cog):
         self.client = client
 
     @commands.command()
-    async def test(self, ctx):
-        await ctx.send("test works")
+    async def test(self, ctx, user: discord.Member):
+        await ctx.send(f"member: {user.display_name}")
 
 
 def setup(client):
