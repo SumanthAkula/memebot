@@ -104,7 +104,7 @@ class DBUtil:
                 )
             elif operation == "subtract":
                 self.cursor.execute(
-                    f"UPDATE {self.ratings_table_name} set {rating} = {rating} - {amount} WHERE user_id = {user_id};"
+                    f"UPDATE {self.ratings_table_name} SET {rating} = {rating} - {amount} WHERE user_id = {user_id};"
                 )
         self.db.commit()
 
