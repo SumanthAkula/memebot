@@ -6,27 +6,19 @@ class CFUtil:
     def __init__(self, db_util: DBUtil):
         self.db_util = db_util
 
-    @staticmethod
-    def __get_cf_option(param: str) -> ConfigOption:
-        option: ConfigOption = ConfigOption.NONE
-        for name, member in ConfigOption.__members__.items():
-            if param.lower() == name:
-                option = member
-                break
-        return option
-
-    def set_param(self, param: str, value):
-        option = self.__get_cf_option(param)
-        if option == ConfigOption.NONE:
+    def set_param(self, param: ConfigOption, value):
+        if param not in ConfigOption:
             raise ValueError("Invalid config parameter!")
-        if param == ConfigOption.prefix.name:
+        if param == ConfigOption.NONE:
+            raise ValueError("Invalid config parameter!")
+        if param == ConfigOption.prefix:
             try:
                 val = ord(value)
             except TypeError:
                 raise TypeError("Invalid value for parameter \"prefix\"")
-        elif param == ConfigOption.meme_reviewer_role.name or \
-                param == ConfigOption.meme_review_channel.name or \
-                param == ConfigOption.admin_role.name:
+        elif param == ConfigOption.meme_reviewer_role or \
+                param == ConfigOption.meme_review_channel or \
+                param == ConfigOption.admin_role:
             val = value.id
         else:
             if value.lower() == 'true':
@@ -34,12 +26,13 @@ class CFUtil:
             elif value.lower() == 'false':
                 val = 0
             else:
-                raise ValueError(f"Invalid value for parameter {param}")
-        self.db_util.set_config_option(option, val)
+                raise ValueError(f"Invalid value for parameter {param.name}")
+        self.db_util.set_config_option(param, val)
 
-    def get_param(self, param: str):
-        option = self.__get_cf_option(param)
-        if option == ConfigOption.NONE:
+    def get_param(self, param: ConfigOption):
+        if param not in ConfigOption:
             raise ValueError("Invalid config parameter!")
-        result = self.db_util.get_config_option(option)
+        if param == ConfigOption.NONE:
+            raise ValueError("Invalid config parameter!")
+        result = self.db_util.get_config_option(param)
         return result
