@@ -7,6 +7,7 @@ from discord.ext import commands
 import secret
 from controller.bot_controller import BotController
 from util import Constants
+from util.config_options import ConfigOption
 from util.config_util import CFUtil
 from util.db_util import DBUtil
 
@@ -22,7 +23,7 @@ cf_util = CFUtil(db_util)
 
 def determine_prefix(_client, _message):
     try:
-        return chr(cf_util.get_param('prefix'))
+        return chr(cf_util.get_param(ConfigOption.prefix))
     except sqlite3.OperationalError:
         return '>'
 
