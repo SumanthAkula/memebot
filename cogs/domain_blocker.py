@@ -1,6 +1,7 @@
 from discord.ext import commands
 
 from main import bot_ctrl, cf_util
+from util.config_options import ConfigOption
 
 
 class DomainBlocker(commands.Cog):
@@ -11,7 +12,7 @@ class DomainBlocker(commands.Cog):
     async def on_message(self, message):
         if message.author == self.client.user:
             return
-        if cf_util.get_param('meme_review_channel') == message.channel.id:
+        if cf_util.get_param(ConfigOption.meme_review_channel) == message.channel.id:
             await bot_ctrl.delete_blocked_domains(message)
 
     @commands.command(aliases=["lsbd"])

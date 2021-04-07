@@ -119,7 +119,7 @@ class Helper(commands.Cog):
                                   "meme review channel.  It's a good idea to run the `blockeddomains` command first to "
                                   "see what each domain's ID number is",
                             inline=False)
-        if ctx.guild.get_role(cf_util.get_param(ConfigOption.meme_reviewer_role.name)) in ctx.author.roles:
+        if ctx.guild.get_role(cf_util.get_param(ConfigOption.meme_reviewer_role)) in ctx.author.roles:
             # MEME REVIEWER COMMANDS
             embed.add_field(name="`rating [add/subtract] [amount (optional)] [kek/cringe/cursed] [@user]`",
                             value="modifies the stats of the user mentioned.  Run the command without any arguments "
