@@ -15,81 +15,92 @@ class BotController:
         self.client = client
 
     async def setconfig(self, ctx, param=None, value: str = None):
+        option = None
         if param == "none":
             await ctx.send("You gotta pass in a parameter!")
             return
-        elif value is None:
-            val = self.cf_util.get_param(param)
-            if param == ConfigOption.prefix.name:
+        for opt in ConfigOption:
+            if param == opt.name:
+                option = opt
+        if option is None:
+            raise ValueError("That is not a valid configuration option!")
+        if value is None:
+            val = self.cf_util.get_param(option)
+            if option == ConfigOption.prefix:
                 val = chr(val)
-            elif param == ConfigOption.meme_reviewer_role.name or param == ConfigOption.admin_role.name:
+            elif option == ConfigOption.meme_reviewer_role or param == ConfigOption.admin_role:
                 role = ctx.guild.get_role(val)
                 if role is None:
                     val = "NULL"
                 else:
                     val = role.mention
-            elif param == ConfigOption.meme_review_channel.name:
+            elif option == ConfigOption.meme_review_channel:
                 channel = ctx.guild.get_channel(val)
                 if channel is None:
                     val = "NULL"
                 else:
                     val = channel.mention
-            await ctx.send(f"The value of {param} is {val}")
+            await ctx.send(f"The value of {option.name} is {val}")
             return
-        elif param == ConfigOption.meme_reviewer_role.name or param == ConfigOption.admin_role.name:
+        elif option == ConfigOption.meme_reviewer_role or option == ConfigOption.admin_role:
             if len(ctx.message.role_mentions) == 0:
-                await ctx.send(f"You gotta tag the role you want to set as the {param}")
+                await ctx.send(f"You gotta tag the role you want to set as the {option.name}")
                 return
             value = ctx.message.role_mentions[0]
-            self.cf_util.set_param(param, value)
-            await ctx.send(f"Set {param} to {value.mention}")
+            self.cf_util.set_param(option, value)
+            await ctx.send(f"Set {option.name} to {value.mention}")
             return
-        elif param == ConfigOption.meme_review_channel.name:
+        elif option == ConfigOption.meme_review_channel:
             if len(ctx.message.channel_mentions) == 0:
                 await ctx.send("You gotta tag the channel you want to set as the meme review channel")
                 return
             value = ctx.message.channel_mentions[0]
-            self.cf_util.set_param(param, value)
-            await ctx.send(f"Set {param} to {value.mention}")
+            self.cf_util.set_param(option, value)
+            await ctx.send(f"Set {option.name} to {value.mention}")
         else:
-            self.cf_util.set_param(param, value)
-            await ctx.send(f"Set {param} to {value}")
+            self.cf_util.set_param(option, value)
+            await ctx.send(f"Set {option.name} to {value}")
 
     async def get_rating(self, message: discord.Message):
         if message.reference is not None:
             orig: discord.Message = await message.channel.fetch_message(message.reference.message_id)
-            self.db_util.add_meme_to_reviewed(orig.id)
             if message.content.find(":abdurkek:") != -1:
-                self.db_util.add_rating(orig.author.id, 'kek')
+                category = "kek"
             elif message.content.find(":abdurcringe:") != -1:
-                self.db_util.add_rating(orig.author.id, 'cringe')
+                category = "cringe"
             elif message.content.find(":cursed:") != -1:
-                self.db_util.add_rating(orig.author.id, 'cursed')
+                category = "cursed"
+            else:
+                return
+            await self.modify_rating(orig.author, "add", 1, category)
+            self.db_util.add_meme_to_reviewed(orig.id)
 
-    async def set_rating(self, target: discord.User, operation: str, amount: int, category: str):
-        if operation.lower() == "add" or operation.lower() == "subtract":
-            self.db_util.set_stat(target.id, operation, amount, category)
+    async def modify_rating(self, target: discord.Member, operation: str, amount: int, category: str):
+        operation = operation.lower()
+        if operation == "add" or operation == "subtract":
+            self.db_util.set_stat(target.id, operation, abs(amount), category)
 
     async def send_canned_responses(self, message: discord.Message):
-        if self.cf_util.get_param("send_ayy_lmao") == 1:
+        if self.cf_util.get_param(ConfigOption.send_ayy_lmao) == 1:
             if message.content.lower().find("ayy") != -1:
                 await message.channel.send("lmao")
-        if self.cf_util.get_param("send_ping_pong") == 1:
+        if self.cf_util.get_param(ConfigOption.send_ping_pong) == 1:
             if message.content.lower() == "ping":
                 await message.channel.send("pong")
-        if self.cf_util.get_param(ConfigOption.send_noot_noot.name) == 1:
+        if self.cf_util.get_param(ConfigOption.send_noot_noot) == 1:
             if message.content.lower() == "noot":
                 await message.channel.send("noot")
-        if self.cf_util.get_param("bully_abdur") == 1:
+        if self.cf_util.get_param(ConfigOption.bully_abdur) == 1:
             if message.content.lower().find("is abdur gay") != -1:
                 insults = self.db_util.get_insults()
                 if len(insults) == 0:
-                    await message.channel.send("The list of insults is empty! Add an insult before running this again")
+                    await message.channel.send("The list of responses is empty! "
+                                               "Add a response before running this again")
                 else:
                     await message.channel.send(random.choice(insults)[1])
 
     async def delete_blocked_domains(self, message: discord.Message):
-        if self.cf_util.get_param("enforce_domain_blacklist"):
+        if self.cf_util.get_param(ConfigOption.enforce_domain_blacklist):
             for _rowid, domain in self.db_util.get_banned_domains():
                 if message.content.find(domain) != -1:
                     await message.channel.send(f"{message.author.mention}, That message links to a domain that "
@@ -193,7 +204,7 @@ class BotController:
         if await self.is_dev(ctx):
             return True
         admin_role = ctx.guild.get_role(
-            self.cf_util.get_param(ConfigOption.admin_role.name))
+            self.cf_util.get_param(ConfigOption.admin_role))
         for role in ctx.author.roles:
             if role.position >= admin_role.position:
                 return True
