@@ -65,47 +65,38 @@ class DBUtil:
             self.cursor.execute(f"INSERT INTO {self.config_table_name} VALUES (62, 1, 1, 1, 1, -1, -1, -1, 1);")
         self.db.commit()
 
-    def add_rating(self, user_id: int, rating: str):
-        possible_ratings = ['kek', 'cringe', 'cursed']
-        if (rating in possible_ratings) is not True:
+    def __add_first_rating(self, user_id: int, rating: str):
+        if rating == 'kek':
+            self.cursor.execute(
+                f"INSERT INTO {self.ratings_table_name} VALUES ({user_id}, 1, 0, 0);"
+            )
+        elif rating == 'cringe':
+            self.cursor.execute(
+                f"INSERT INTO {self.ratings_table_name} VALUES ({user_id}, 0, 1, 0);"
+            )
+        elif rating == 'cursed':
+            self.cursor.execute(
+                f"INSERT INTO {self.ratings_table_name} VALUES ({user_id}, 0, 0, 1);"
+            )
+
+    def set_stat(self, user_id: int, operation: str, amount: int, rating: str):
+        possible_categories = ["kek", "cringe", "cursed"]
+        ops = ["add", "subtract"]
+        if rating not in possible_categories:
+            return
+        if operation not in ops:
             return
         row = self.cursor.execute(
             f"SELECT * FROM {self.ratings_table_name} WHERE user_id = {user_id};"
         ).fetchone()
-        if row is None or len(row) == 0:  # row is empty
-            if rating == 'kek':
-                self.cursor.execute(
-                    f"INSERT INTO {self.ratings_table_name} VALUES ({user_id}, 1, 0, 0);"
-                )
-            elif rating == 'cringe':
-                self.cursor.execute(
-                    f"INSERT INTO {self.ratings_table_name} VALUES ({user_id}, 0, 1, 0);"
-                )
-            elif rating == 'cursed':
-                self.cursor.execute(
-                    f"INSERT INTO {self.ratings_table_name} VALUES ({user_id}, 0, 0, 1);"
-                )
-        else:
-            # update row
-            self.cursor.execute(
-                f"UPDATE {self.ratings_table_name} SET {rating} = {rating} + 1 WHERE user_id = {user_id};")
-        self.db.commit()
-
-    def set_stat(self, user_id: int, operation: str, amount: int, rating: str):
-        row = self.cursor.execute(
-            f"SELECT * FROM {self.ratings_table_name} WHERE user_id = {user_id};"
-        ).fetchone()
         if row is None or len(row) == 0:
-            self.add_rating(user_id, rating)
+            self.__add_first_rating(user_id, rating)
         else:
-            if operation == "add":
-                self.cursor.execute(
-                    f"UPDATE {self.ratings_table_name} SET {rating} = {rating} + {amount} WHERE user_id = {user_id};"
-                )
-            elif operation == "subtract":
-                self.cursor.execute(
-                    f"UPDATE {self.ratings_table_name} SET {rating} = {rating} - {amount} WHERE user_id = {user_id};"
-                )
+            if operation == "subtract":
+                amount *= -1  # make the amount negative if you are subtracting
+            self.cursor.execute(
+                f"UPDATE {self.ratings_table_name} SET {rating} = {rating} + {amount} WHERE user_id = {user_id};"
+            )
         self.db.commit()
 
     def add_meme_to_reviewed(self, message_id: int):
