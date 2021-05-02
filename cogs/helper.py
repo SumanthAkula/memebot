@@ -9,6 +9,11 @@ class Helper(commands.Cog):
     def __init__(self, client):
         self.client = client
 
+    @commands.command(aliases=["cl"])
+    async def changelog(self, ctx):
+        with open("changelog.md", "r") as cl:
+            await ctx.send(cl.read())
+
     @commands.command()
     async def help(self, ctx, arg=""):
         if ctx.author == self.client.user:
