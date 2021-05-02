@@ -28,21 +28,48 @@ class Reviewer(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_clear(self, payload: discord.RawReactionClearEvent):
-        print(payload)
+        channel: discord.TextChannel = self.client.get_channel(payload.channel_id)
+        if channel.id != cf_util.get_param(ConfigOption.meme_review_channel):
+            return
+        message: discord.Message = await channel.fetch_message(payload.message_id)
+        # the event was a reaction clear event since RawReactionClearEvent has no event_type attribute
+        if db_util.meme_already_reviewed(message.id):
+            print("already reviewed!")
+            await message.reply("Reactions cleared! The original rating still stands. **Clearing reactions from a "
+                                "meme in this channel can prevent the this bot from tracking them properly!**")
+        else:
+            print("not reviewed, not doing anything")
 
     async def __reaction_rating(self, payload):
         channel: discord.TextChannel = self.client.get_channel(payload.channel_id)
         if channel.id != cf_util.get_param(ConfigOption.meme_review_channel):
             return
+        reviewer_role = channel.guild.get_role(cf_util.get_param(ConfigOption.meme_reviewer_role))
+        reactor_roles = channel.guild.get_member(payload.user_id).roles
+        if reviewer_role not in reactor_roles:
+            return
+        message: discord.Message = await channel.fetch_message(payload.message_id)
         valid_emoji = ["abdurkek", "abdurcringe", "cursed"]
         if payload.emoji.name not in valid_emoji:
             return
-        message: discord.Message = await channel.fetch_message(payload.message_id)
         if payload.event_type == "REACTION_ADD":
+            db_util.add_meme_to_reviewed(message.id)
             await bot_ctrl.modify_rating(message.author, "add", 1, payload.emoji.name.replace("abdur", ""))
             await message.reply(payload.emoji)
         elif payload.event_type == "REACTION_REMOVE":
+            db_util.remove_meme_from_reviewed(message.id)
             await bot_ctrl.modify_rating(message.author, "subtract", 1, payload.emoji.name.replace("abdur", ""))
+            """
+            delete a message if and only if:
+                * the message was sent by the bot
+                * the message is a reply to a meme
+                * the meme rating reaction was removed
+            """
+            async for msg in channel.history(limit=100):
+                if msg.author == self.client.user and msg.reference is not None:
+                    if message.id == msg.reference.message_id:
+                        if msg.content == str(payload.emoji):
+                            await msg.delete()
 
     # ----------------------------------------- COMMANDS TO MODIFY USER STATS ------------------------------------------
     @commands.group(invoke_without_command=True)
@@ -82,7 +109,13 @@ class Reviewer(commands.Cog):
     async def leaderboard(self, ctx, sort: str = 'r'):
         await ctx.send(await bot_ctrl.get_leaderboard(ctx, sort))
 
-    # --------------------------------------- PRELOAD CODE DON'T MESS WITH THIS! ---------------------------------------
+    # ----------------------------------------- COMMAND TO GET LAST RATED MEME -----------------------------------------
+    @commands.command(aliases=["lm"])
+    async def lastmeme(self, ctx):
+        meme: discord.Message = await ctx.channel.fetch_message(db_util.get_last_rated_meme())
+        await meme.reply("Last reviewed meme is this one", mention_author=False)
+
+    # ---------------------------------------------------- PRELOAD -----------------------------------------------------
     @commands.command()
     @commands.check(bot_ctrl.is_dev)
     async def preload(self, ctx: discord.ext.commands.Context):
