@@ -30,6 +30,7 @@ def determine_prefix(_client, _message):
 
 intents = discord.Intents.default()
 intents.members = True
+intents.reactions = True
 client = commands.Bot(command_prefix=determine_prefix, intents=intents)
 client.remove_command('help')
 bot_ctrl = BotController(client, db_util, cf_util)
