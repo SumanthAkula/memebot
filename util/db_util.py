@@ -105,6 +105,18 @@ class DBUtil:
         )
         self.db.commit()
 
+    def remove_meme_from_reviewed(self, message_id):
+        self.cursor.execute(
+            f"DELETE FROM {self.reviewed_memes_table_name} WHERE message_id = {message_id};"
+        )
+        self.db.commit()
+
+    def get_last_rated_meme(self):
+        row = self.cursor.execute(
+            f"SELECT * FROM {self.reviewed_memes_table_name} ORDER BY rowid DESC LIMIT 1;"
+        ).fetchone()
+        return row[0]
+
     def get_user_data(self, user_id: int):
         row = self.cursor.execute(
             f"SELECT * FROM {self.ratings_table_name} WHERE user_id = {user_id};"
