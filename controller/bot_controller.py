@@ -75,10 +75,13 @@ class BotController:
             await self.modify_rating(orig.author, "add", 1, category)
             self.db_util.add_meme_to_reviewed(orig.id)
 
-    async def modify_rating(self, target: discord.Member, operation: str, amount: int, category: str):
+    async def modify_rating(self, target: discord.Member, operation: str, amount: int, category: str,
+                            message_id: int = None):
         operation = operation.lower()
         if operation == "add" or operation == "subtract":
             self.db_util.set_stat(target.id, operation, abs(amount), category)
+        if message_id is not None:
+            self.db_util.add_meme_to_reviewed(message_id)
 
     async def send_canned_responses(self, message: discord.Message):
         if self.cf_util.get_param(ConfigOption.send_ayy_lmao) == 1:
