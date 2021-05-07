@@ -107,7 +107,10 @@ class DBUtil:
 
     def remove_meme_from_reviewed(self, message_id):
         self.cursor.execute(
-            f"DELETE FROM {self.reviewed_memes_table_name} WHERE message_id = {message_id};"
+            f"""
+                DELETE FROM {self.reviewed_memes_table_name} WHERE rowid = 
+                    (SELECT MIN(rowid) FROM {self.reviewed_memes_table_name} WHERE message_id = {message_id})
+            """
         )
         self.db.commit()
 
