@@ -4,7 +4,7 @@ import sqlite3
 import discord
 from discord.ext import commands
 
-import secret
+import secret  # a python file used to store the strings for the bot token and the bot status
 from controller.bot_controller import BotController
 from util import Constants
 from util.config_options import ConfigOption
@@ -44,7 +44,7 @@ print("starting now")
 
 @client.event
 async def on_ready():
-    await client.change_presence(activity=discord.Game("with chronos' scrotum"))
+    await client.change_presence(activity=discord.Game(secret.STATUS))
     print("Bot is ready")
 
 
