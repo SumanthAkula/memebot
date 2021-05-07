@@ -107,7 +107,11 @@ class Reviewer(commands.Cog):
 
     @commands.command(aliases=["lb"])
     async def leaderboard(self, ctx, sort: str = 'r'):
+        start_t = time.time()
+        tmp = await ctx.send("Hold on a few seconds it gotta load rq...")
         await ctx.send(await bot_ctrl.get_leaderboard(ctx, sort))
+        await tmp.delete()
+        print(time.time() - start_t)
 
     # ----------------------------------------- COMMAND TO GET LAST RATED MEME -----------------------------------------
     @commands.command(aliases=["lm"])
