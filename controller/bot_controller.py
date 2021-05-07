@@ -61,6 +61,7 @@ class BotController:
             self.cf_util.set_param(option, value)
             await ctx.send(f"Set {option.name} to {value}")
 
+    # TODO: REPLACE THE EMOTES HERE WITH THOSE FROM THE DATABASE
     async def get_rating(self, message: discord.Message):
         if message.reference is not None:
             orig: discord.Message = await message.channel.fetch_message(message.reference.message_id)
@@ -173,9 +174,7 @@ class BotController:
         if len(all_data) == 0:
             value = "There is no meme review data, so a leaderboard cannot be created!"
             return value
-        all_data = [list(data)+[data[1] / (1 if data[2] == 0 else data[2])]
-                    for data in all_data]
-        all_data = [list(data)+[data[1] + data[2] + data[3]]
+        all_data = [list(data)+[data[1] / (1 if data[2] == 0 else data[2])] + [data[1] + data[2] + data[3]]
                     for data in all_data]
         sort = sort.lower()
         if sort == 'kek':
@@ -191,11 +190,14 @@ class BotController:
             sort_index = 4  # if no valid sort type is passed in, default to sort by ratio
         all_data = sorted(all_data, key=itemgetter(sort_index), reverse=True)
         value = f"**Meme Review Leaderboard (sorted by {sort})**\n"
-        value += "```python\n"
+        value += "```\n"
         for uid, kek, cringe, cursed, ratio, total in all_data:
-            user = await ctx.guild.fetch_member(uid)
-            value += f"{user.display_name: <32} Kek: {kek: <4} Cringe: {cringe: <4} Cursed: {cursed: <4}" \
-                     f" Ratio: {ratio: <7.2f} Total: {total}\n"
+            try:
+                user = await ctx.guild.fetch_member(uid)
+                value += f"{user.display_name: <32} Kek: {kek: <4} Cringe: {cringe: <4} Cursed: {cursed: <4}" \
+                         f" Ratio: {ratio: <7.2f} Total: {total}\n"
+            except discord.errors.NotFound:
+                pass
         value += "```"
         return value
 
