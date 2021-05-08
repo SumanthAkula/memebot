@@ -3,14 +3,14 @@ from util.config_options import ConfigOption
 
 
 class DBUtil:
-    def __init__(self, db_name, ratings_table_name, reviewed_memes_table_name, config_table_name, insults_table_name,
+    def __init__(self, db_name, ratings_table_name, reviewed_memes_table_name, config_table_name, responses_table_name,
                  banned_domain_table_name):
         self.db = sqlite3.connect(db_name, isolation_level=None)
         self.cursor = self.db.cursor()
         self.ratings_table_name = ratings_table_name
         self.reviewed_memes_table_name = reviewed_memes_table_name
         self.config_table_name = config_table_name
-        self.insults_table_name = insults_table_name
+        self.responses_table_name = responses_table_name
         self.banned_domain_table_name = banned_domain_table_name
 
     def create_tables(self):
@@ -34,22 +34,22 @@ class DBUtil:
         # create table to store configuration options
         self.cursor.execute(f"""
                 CREATE TABLE IF NOT EXISTS config_options(
-                    prefix INTEGER DEFAULT 62,
-                    bully_abdur INTEGER DEFAULT 1,
-                    send_ayy_lmao INTEGER DEFAULT 1,
-                    send_ping_pong INTEGER DEFAULT 1,
-                    send_noot_noot INTEGER DEFAULT 1,
-                    meme_reviewer_role INTEGER DEFAULT -1,
-                    admin_role INTEGER DEFAULT -1,
-                    meme_review_channel INTEGER DEFAULT -1,
-                    enforce_domain_blacklist INTEGER DEFAULT 1
+                    {ConfigOption.prefix.name} INTEGER DEFAULT 62,
+                    {ConfigOption.bully_abdur.name} INTEGER DEFAULT 1,
+                    {ConfigOption.send_ayy_lmao.name} INTEGER DEFAULT 1,
+                    {ConfigOption.send_ping_pong.name} INTEGER DEFAULT 1,
+                    {ConfigOption.send_noot_noot.name} INTEGER DEFAULT 1,
+                    {ConfigOption.meme_reviewer_role.name} INTEGER DEFAULT -1,
+                    {ConfigOption.admin_role.name} INTEGER DEFAULT -1,
+                    {ConfigOption.meme_review_channel.name} INTEGER DEFAULT -1,
+                    {ConfigOption.enforce_domain_blacklist.name} INTEGER DEFAULT 1
                 );
         """)
 
         # create table to store responses for bully_abdur
         self.cursor.execute(f"""
-                CREATE TABLE IF NOT EXISTS {self.insults_table_name}(
-                    insult TEXT
+                CREATE TABLE IF NOT EXISTS {self.responses_table_name}(
+                    response TEXT
                 );
         """)
 
@@ -163,22 +163,22 @@ class DBUtil:
         )
         self.db.commit()
 
-    # functions relating to the insulting system
-    def get_insults(self):
+    # functions relating to the responder system
+    def get_responses(self):
         row = self.cursor.execute(
-            f"SELECT rowid, insult FROM {self.insults_table_name};"
+            f"SELECT rowid, response FROM {self.responses_table_name};"
         ).fetchall()
         return row
 
-    def add_insult(self, insult: str):
+    def add_response(self, response: str):
         self.cursor.execute(
-            f"INSERT INTO {self.insults_table_name} VALUES(\"{insult}\");"
+            f"INSERT INTO {self.responses_table_name} VALUES(\"{response}\");"
         )
         self.db.commit()
 
-    def remove_insult(self, insult_id: int):
+    def remove_response(self, resp_id: int):
         self.cursor.execute(
-            f"DELETE FROM {self.insults_table_name} WHERE rowid = {insult_id}"
+            f"DELETE FROM {self.responses_table_name} WHERE rowid = {resp_id}"
         )
         self.cursor.execute(
             f"VACUUM;"

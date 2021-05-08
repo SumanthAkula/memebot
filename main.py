@@ -15,7 +15,7 @@ db_util = DBUtil(Constants.DB_FILE_NAME,
                  Constants.RATINGS_TABLE_NAME,
                  Constants.RATED_MEME_IDS_NAME,
                  Constants.CONFIG_OPTIONS_TABLE_NAME,
-                 Constants.INSULTS_TABLE_NAME,
+                 Constants.RESPONSES_TABLE_NAME,
                  Constants.BANNED_DOMAINS_TABLE_NAME)
 db_util.create_tables()
 cf_util = CFUtil(db_util)
