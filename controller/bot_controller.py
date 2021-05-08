@@ -96,12 +96,12 @@ class BotController:
                 await message.channel.send("noot")
         if self.cf_util.get_param(ConfigOption.bully_abdur) == 1:
             if message.content.lower().find("is abdur gay") != -1:
-                insults = self.db_util.get_insults()
-                if len(insults) == 0:
+                responses = self.db_util.get_responses()
+                if len(responses) == 0:
                     await message.channel.send("The list of responses is empty! "
                                                "Add a response before running this again")
                 else:
-                    await message.channel.send(random.choice(insults)[1])
+                    await message.channel.send(random.choice(responses)[1])
 
     async def delete_blocked_domains(self, message: discord.Message):
         if self.cf_util.get_param(ConfigOption.enforce_domain_blacklist):
@@ -111,23 +111,23 @@ class BotController:
                                                f"is blocked ({domain}), so your message has been removed")
                     await message.delete()
 
-    # code to process insults
-    async def list_insults_embed(self) -> discord.Embed:
-        row = self.db_util.get_insults()
-        description = "The number is the ID of the insult\n" \
-                      "Run the `deleteinsult [ID]` command to delete an insult from this list\n" \
-                      "Run the `addinsult [insult]` command to add an insult to this list"
+    # code to process responses
+    async def list_responses_embed(self) -> discord.Embed:
+        row = self.db_util.get_responses()
+        description = "The number is the ID of the response\n" \
+                      "Run the `removeresponse [ID]` command to delete a response from this list\n" \
+                      "Run the `addresponse [response]` command to add a response to this list"
         embed = discord.Embed(
             title="Possible replies to \"is abdur gay?\"", description=description)
         for obj in row:
             embed.add_field(name=f"{obj[0]}.", value=str(obj[1]), inline=False)
         return embed
 
-    async def add_insult_to_db(self, insult: str):
-        self.db_util.add_insult(insult)
+    async def add_response_to_db(self, resp_id: str):
+        self.db_util.add_response(resp_id)
 
-    async def remove_insult_from_db(self, insult_id: int):
-        self.db_util.remove_insult(insult_id)
+    async def remove_response_from_db(self, resp_id: int):
+        self.db_util.remove_response(resp_id)
 
     # code to process domain blacklist
     async def list_banned_domains(self) -> discord.Embed:
